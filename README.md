@@ -5,7 +5,7 @@ YouTube functionality will be implemented at a later date
 
 ### Actors:
 	Bot: The system that the users and admins interact with.
-	Admin: A person that has control over the bot, and higher priveleges than the user to operate specific tasks.
+	Admin: A person that has control over the bot, and higher privileges than the user to operate specific tasks.
 	User: A person that interacts with the bot through song submissions and playlist viewing.
 
 
@@ -23,28 +23,36 @@ YouTube functionality will be implemented at a later date
 	view playlists
 	add song to playlists
 		
-### set input channel
-Precondition: Bot is in at least one a channel
-Participating Actor: Admin
-Postcondition: Bot will only read messages from set channel
-Flow of Events: 1) Admin requests a setting of the channel that the bot will read messages from
-				2) Bot stores the channel it will read input from and responds to admin that the input channel has been set. This message will be relayed in output channel if set, or in the channel the request was sent in otherwise.
+###'set input channel'
+| Precondition: | Bot is in at least one a channel
+| Participating Actor: | Admin
+| Postcondition: | Bot will only read messages from set channel
+| Flow of Events: | 1) Admin requests a setting of the channel that the bot will read messages from
+| | 2) Bot stores the channel it will read input from and responds to admin that the input channel has been set. This message will be relayed in output channel if set, or in the channel the request was sent in otherwise.
 				
-### set output channel
+###`set output channel`
 Precondition: Bot is reading from a channel
+
 Participating Actor: Admin
+
 Postcondition: Bot will relay all responses from set channel
-Flow of Events: 1) Admin requests in a channel that the bot is reading, that the bot display all responses in a specific channel.
-				2) Bot stores the channel it will respond to, and responds to the Admin's request in the set channel.
+
+Flow of Events: 
+
+1) Admin requests in a channel that the bot is reading, that the bot display all responses in a specific channel.
 				
-### link spotify
+2) Bot stores the channel it will respond to, and responds to the Admin's request in the set channel.
+				
+###`link spotify`
 Not a feasible way to do this over Discord while protecting account integrity at the moment.
 
-### link youtube
+###`link youtube`
 
-### fill playlists
+###`fill playlists`
 Precondition: Bot is reading from a channel and a Spotify account is linked
+
 Participating Actor: Admin
+
 Postcondition: Playlist is filled with all shared music in the set channel
 Flow of Events: 1) Admin requests a fill of the playlist.
 				2) Bot will read through the channel and add all Spotify links it finds to the playlist, ignoring duplicates. Bot responds in the output channel that it has completed the task. This operation will likely be heavily rate limited by Discord, so this operation will be slow.
