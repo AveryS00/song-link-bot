@@ -1,9 +1,11 @@
 
+
 module.exports = {
 	name: 'playlist',
 	description: 'Gives a link to the playlist of collected songs',
-	execute(message, args) {
-		message.channel.send('View playlist here: ');
+	execute(message, args, json) {
+		message.channel.send(`View playlist here: https://open.spotify.com/user/${json.spotify_user_id}/playlist/${json.server_list[message.guild.id].playlist_id}`);
+	console.log(`${message.member.displayName} requested viewing of link in guild ${message.guild.id}`);
 	},
 };
 
