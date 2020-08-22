@@ -11,7 +11,6 @@ module.exports = {
 			return;
 		}
 
-
 		if (args[0] === 'music_channel') {
 		
 			if (args[1].startsWith('<#') && args[1].endsWith('>')) {

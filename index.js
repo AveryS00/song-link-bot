@@ -25,7 +25,7 @@ client.once('ready', () => {
 	console.log('Connected to Discord\n');
 });
 
-client.on('guildCreate', (guild) => {
+client.on('guildCreate', guild => {
 	// Create a JSON dict for the server
 	json.server_list[guild.id] = {
 		'music_channel': '',
@@ -50,27 +50,35 @@ client.on('guildCreate', (guild) => {
 
 client.on('message', message => {
 	const guildSettings = json.server_list[message.guild.id];
-	
+
+	// If the message isn't from the music channel and the music channel is set
 	if (guildSettings.music_channel !== '' && message.channel.id !== guildSettings.music_channel) return;
 
-	if (guildSettings.operational && guildSettings.music_channel !== '' && !message.author.bot
-		&& message.content.match(/https:\/\/open.spotify.com\/track\/[a-zA-Z0-9]+/g) !== null) {
+	let matches = message.content.match(/https:\/\/open.spotify.com\/track\/[a-zA-Z0-9]+/g);
+	// Guild is good to go, the music channel is set, the author isn't the bot, and there is a spotify link in the message
+	if (guildSettings.operational && guildSettings.music_channel !== '' && !message.author.bot && matches !== null) {
 
 		// Found a message with spotify links. Add it to the playlist and log.
-		for (let track of message.content.match(/https:\/\/open.spotify.com\/track\/[a-zA-Z0-9]+/g)) {
-			track = track.replace(/\?si=[a-zA-Z0-9]+/,''); // Remove the sharing trackers at the end of the link
-
-			spotify.addSong(track.replace('https://open.spotify.com/track/', ''), guildSettings.playlist_id).then(
-				() => {
-					console.log(`Added song ${track} to server ${message.guild.id}/${message.guild.name} sent by ${message.member.displayName}\n`);
-					helper.logToDiscord(client, guildSettings.logging_channel, `Added song ${track} sent by ${message.member.displayName}`);
+		matches = matches.map(x => x.replace(/\?si=[a-zA-Z0-9]+/,''));// Remove the sharing tracker from the end
+		spotify.batchAddSongs(matches.map(x => x.replace('https://open.spotify.com/track/', '')), guildSettings.playlist_id).then(
+				result => {
+					let resultMessage;
+					if (matches.length === 1) {
+						resultMessage = `Added song \<${matches[0]}\> sent by ${message.member.displayName}`; // Template format doesn't like my angled brackets
+					} else {
+						resultMessage = `Successfully added ${result} songs to playlist ${guildSettings.playlist_id}`;
+					}
+					helper.logToDiscord(client, guildSettings.logging_channel, resultMessage);
 				},
 				error => {
-					console.log(`Unable to add song ${track} to server ${message.guild.id}/${message.guild.name} sent by ${message.member.displayName}\n`);
-					helper.logToDiscord(client, guildSettings.logging_channel,`Unable to add song ${track} sent by ${message.member.displayName}\n${error.message}`);
+					let resultMessage;
+					if (matches.length === 1) {
+						resultMessage = `Could not add song \<${matches[0]}\> sent by ${message.member.displayName}.\nError: ${error.message}`; // Template format doesn't like my angled brackets
+					} else {
+						resultMessage = `Error adding ${matches.length} songs to playlist ${guildSettings.playlist_id} sent by ${message.member.displayName}.\nError: ${error}`;
+					}
+					helper.logToDiscord(client, guildSettings.logging_channel, resultMessage);
 				});
-		}
-
 		
 	} else {
 		// Message is calling the bot and also isn't the bot itself doing it
@@ -97,12 +105,23 @@ client.on('message', message => {
 	}
 });
 
+client.on('channelDelete', channel => {
+		if (channel.type !== 'text') { return; }
+
+		if (channel.id === json.server_list[channel.guild.id].music_channel) {
+			json.server_list[channel.guild.id].music_channel = '';
+		} else if (channel.id === json.server_list[channel.guild.id].logging_channel) {
+			json.server_list[channel.guild.id].logging_channel = '';
+		}
+	}
+);
+
 // I want a graceful exit. This will save the json object to the config file
 // so that items are not lost on closure of the bot.
 rl.on('SIGINT', () => {
 	console.log('Saving changes');
 	json.spotify_refresh_token = spotify.getRefreshToken();
-	//json.spotify_user_id = spotify.getSpotifyUserId();
+	json.spotify_user_id = spotify.getSpotifyUserId();
 	fs.writeFile('config.json', JSON.stringify(json, null, 4), err => {
 		if (err) {
 			console.log(err);
@@ -116,5 +135,9 @@ rl.on('SIGINT', () => {
 });
 
 spotify.authenticate(); // Start the authentication process for Spotify TODO make a promise, .then(connect to Discord)
-client.login(json.token);
+client.login(json.token).catch(
+	error => {
+		console.log(`Couldn't connect to Discord. Error: ${error}`);
+		process.exit();
+	});
 
