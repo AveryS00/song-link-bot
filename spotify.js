@@ -65,7 +65,7 @@ const server = app.listen('8888'); // Open the HTTP Server, will be closed when 
 
 /**
  * Checks to see if the bot currently has a valid access token.
- * @return {Promise} A promise to obtain the access_token from the request
+ * @return {Promise<String>} A promise to obtain the access_token from the request
  * @throws No refresh token
  * @throws Cannot gain access token (in the promise)
  */
@@ -110,9 +110,10 @@ function checkAccess() {
 
 /**
  * Gets all of the song ids from a given playlist and returns them in a dictionary
- * where the ids are the key and the value is the Spotify URI.
+ * where the ids are the key and the value is the Spotify URI. For Console logs, if
+ * the start is less than the end, there were no songs to get.
  * @param {String} playlistId The id for the playlist to get
- * @return {Object} A dictionary of ID:URI song key:value pairs
+ * @return {Promise<{String:String}>} A dictionary of ID:URI song key:value pairs
  */
 async function getAllIds(playlistId) {
 	let idDict = {};
@@ -120,7 +121,7 @@ async function getAllIds(playlistId) {
 	let idList = await getIdsByOffset(playlistId, offset); // Spotify API can only get 100 songs at a time
 
 	while (idList.length !== 0) {
-		for (let track in idList) {
+		for (let track of idList) {
 			idDict[idList[track].track.id] = `spotify:track:${idList[track].track.id}`;
 		}
 		offset += 100;
@@ -135,7 +136,7 @@ async function getAllIds(playlistId) {
  * IDs from the given playlist at the offset.
  * @param {String} playlistId The id of the playlist to get songs from
  * @param {number} offset The starting point. 0 starts at the first song in a playlist
- * @return {Promise<Object>} Returns the raw body of the call. A list of dictionaries with a structure of {track: {id:'trackId'}}
+ * @return {Promise<{String:{String:String}}>} Returns the raw body of the call. A list of dictionaries with a structure of {track: {id:'trackId'}}
  * @throws 'Could not get songs in playlist: [playlistId], could not check for duplicates: error message'
  */
 function getIdsByOffset(playlistId, offset) {
@@ -172,11 +173,30 @@ function getIdsByOffset(playlistId, offset) {
  * Checks to see if one song is already in the given playlist
  * @param {String} track The ID of the track to check
  * @param {String} playlistId The ID of the playlist
- * @return {boolean} True if the track is already in the playlist
+ * @return {Promise<boolean>} True if the track is already in the playlist
  */
 async function inPlaylist(track, playlistId) {
 	let trackList = await getAllIds(playlistId);
 	return track in trackList;
+}
+
+/**
+ * Removes duplicate ids from the given tracks and returns the non-duplicates in URI form
+ * @param {[String]} tracks The list of track ids
+ * @param {String} playlistId The playlist to check duplicates against
+ * @return {Promise<[String]>} Returns a list of the songs that aren't duplicates in URI form
+ */
+async function removeDuplicates(tracks, playlistId) {
+	let playlist = await getAllIds(playlistId);
+	let trackList = [];
+
+	for (let track of tracks) {
+		if (!(track in playlist)) {
+			trackList.push(`spotify:track:${track}`);
+		}
+	}
+
+	return trackList;
 }
 
 /**
@@ -206,7 +226,7 @@ exports.authenticate = function () {
  * Create a Spotify Playlist named after the server and return the playlist id.
  * Throw errors from checkAccess if unable to get token.
  * @param {String} guildName The name of the server
- * @return {Promise} The id of the playlist created
+ * @return {Promise<String>} The id of the playlist created
  * @throws Could not create Playlist
   */
 exports.createPlaylist = async function (guildName) {
@@ -251,7 +271,7 @@ exports.createPlaylist = async function (guildName) {
  * Throws errors from checkAccess() if an issue occurs there.
  * @param {String} track The id of the song
  * @param {String} playlistId The id of the playlist
- * @return {boolean} Will always return true as a failure will have an error
+ * @return {Promise<boolean>} Will always return true as a failure will have an error
  * @throws Could not add song
  */
 exports.addSong = async function (track, playlistId) {
@@ -293,36 +313,55 @@ exports.addSong = async function (track, playlistId) {
 	});
 };
 
-// Adds a batch of songs (associated with the fill command) to the given playlist
-// tracks should be a list of Spotify tracks and playlistId the ID number of the playlist
-// accepts a max of 100 songs.
-// TODO
+/**
+ * Adds a list of song ids to the given playlist. Ignores duplicates.
+ * @param {[String]} tracks The array of track IDs
+ * @param {String} playlistId The playlist to add the songs to.
+ * @return {Promise<number>} Returns a promise which on resolve, gives the number of tracks added
+ */
 exports.batchAddSongs = async function (tracks, playlistId) {
 	await checkAccess();
-	
-	const getOptions = {
-		url: `https://api.spotify.com/v1/playlist/${playlistId}/tracks?` +
-			querystring.stringify({fields: 'items(track.id)'}),
-		headers: { 'Authorization': 'Bearer ' + access_token },
-		json: true
-	};
 
-	let trackList = null;
-	request.get(getOptions, function(error, response, body) {
-		
-	});
+	tracks = await removeDuplicates(tracks, playlistId);
 
+	let songsAdded = 0;
+	for (let i = 0; i < Math.ceil(tracks.length / 100); i++) {
+		const numSongsToAdd = Math.min(tracks.length - 1, i*100 + 99);
 
-	const options = {
-		url: `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
-		headers: { 'Authorization': 'Basic ' + (new Buffer(json.spotify_id + ':' + json.spotify_secret).toString('base64'))},
-		form: {
-			uris: [`spotify:track:${track}`]
-		},
-		json: true
-	};
+		const options = {
+			url: `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
+			headers: {
+				'Authorization': `Bearer ${access_token}`,
+				'Content-Type': 'application/json'
 
+			},
+			body: JSON.stringify({
+				uris: tracks.slice(i*100, numSongsToAdd)
+			}),
+			dataType: 'json'
+		};
 
+		songsAdded += await new Promise(function(resolve, reject) {
+			request.post(options, function (error, response, body) {
+				if (typeof body === 'string') {
+					body = body.replace(/\n/g, '');
+					body = JSON.parse(body);
+				}
+
+				if (!error && response.statusCode === 201) {
+					console.log(`Added ${numSongsToAdd} songs to playlistId: ${playlistId}`);
+					resolve(numSongsToAdd);
+				} else {
+					console.log(`Could not add ${numSongsToAdd} songs to playlistId: ${playlistId}`);
+					console.log(`Status code: ${response.statusCode}`);
+					console.log(`Error Message: ${body.error.message}`);
+					reject(new Error(`Could not add ${numSongsToAdd} songs: ${body.error.message}`));
+				}
+			});
+		});
+	}
+
+	return songsAdded;
 };
 
 // Clears the entire playlist to be filled again.

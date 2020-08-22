@@ -11,7 +11,7 @@ client.commands = new Discord.Collection();
 
 const spotify = require('./spotify.js'); // Separate JS file to handle all things Spotify
 const json = require('./config.json'); // Contains environment variables needed to operate
-
+const helper = require('./discord-helper-functions'); // Contains helper functions useful for commands and this file
 
 // Dynamically loads command files
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
@@ -19,21 +19,6 @@ for (const file of commandFiles) {
 	const command = require(`./commands/${file}`);
 	client.commands.set(command.name, command);
 }
-
-
-
-/**
- * TODO will crash if admin deletes logging channel
- * Send a logging message to the logging channel if it has been set. If not, do nothing
- * @param {Client} client The connected Discord client
- * @param {String} guildId The id of the server to send the message to
- * @param {String} message The message to send
- */
-function logToDiscord(client, guildId, message) {
-	if (json.server_list[guildId].logging_channel === '') return;
-	client.channels.cache.get(json.server_list[guildId].logging_channel).send(message);
-}
-
 
 
 client.once('ready', () => {
@@ -56,7 +41,7 @@ client.on('guildCreate', (guild) => {
 			json.server_list[guild.id].playlist_id = result;
 
 			},
-		error => {
+		() => {
 			json.server_list[guild.id].operational = false;
 			// TODO figure out how to send an error and success message
 		}
@@ -74,15 +59,15 @@ client.on('message', message => {
 		// Found a message with spotify links. Add it to the playlist and log.
 		for (let track of message.content.match(/https:\/\/open.spotify.com\/track\/[a-zA-Z0-9]+/g)) {
 			track = track.replace(/\?si=[a-zA-Z0-9]+/,''); // Remove the sharing trackers at the end of the link
-			
+
 			spotify.addSong(track.replace('https://open.spotify.com/track/', ''), guildSettings.playlist_id).then(
-				result => {
+				() => {
 					console.log(`Added song ${track} to server ${message.guild.id}/${message.guild.name} sent by ${message.member.displayName}\n`);
-					logToDiscord(client, message.guild.id, `Added song ${track} sent by ${message.member.displayName}`);
+					helper.logToDiscord(client, guildSettings.logging_channel, `Added song ${track} sent by ${message.member.displayName}`);
 				},
 				error => {
 					console.log(`Unable to add song ${track} to server ${message.guild.id}/${message.guild.name} sent by ${message.member.displayName}\n`);
-					logToDiscord(client, message.guild.id,`Unable to add song ${track} sent by ${message.member.displayName}\n\n${error.message}`);
+					helper.logToDiscord(client, guildSettings.logging_channel,`Unable to add song ${track} sent by ${message.member.displayName}\n\n${error.message}`);
 				});
 		}
 
@@ -105,7 +90,7 @@ client.on('message', message => {
 		if (!client.commands.has(commandName)) return;
 		const command = client.commands.get(commandName);
 		try {
-			command.execute(message, args, json);
+			command.execute(message, args, json, spotify);
 		} catch (error) {
 			console.error(error);
 		}
