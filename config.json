@@ -1,0 +1,21 @@
+{
+  "token":"",
+  "spotify_id":"",
+  "spotify_secret":"",
+  "spotify_refresh_token":"",
+  "spotify_user_id":"",
+  "valid_prefixes": [
+        "!",
+        "!!",
+        ".",
+        "..",
+        "?",
+        "??",
+        "&",
+        "&&",
+        "+",
+        "++"
+    ],
+    "server_list": {
+    }
+}
