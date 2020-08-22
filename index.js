@@ -21,6 +21,7 @@ for (const file of commandFiles) {
 }
 
 
+
 client.once('ready', () => {
 	console.log('Connected to Discord\n');
 });
@@ -59,8 +60,8 @@ client.on('message', message => {
 	if (guildSettings.operational && guildSettings.music_channel !== '' && !message.author.bot && matches !== null) {
 
 		// Found a message with spotify links. Add it to the playlist and log.
-		matches = matches.map(x => x.replace(/\?si=[a-zA-Z0-9]+/,''));// Remove the sharing tracker from the end
-		spotify.batchAddSongs(matches.map(x => x.replace('https://open.spotify.com/track/', '')), guildSettings.playlist_id).then(
+		matches = matches.map(track => track.replace(/\?si=[a-zA-Z0-9]+/,''));// Remove the sharing tracker from the end
+		spotify.batchAddSongs(matches.map(track => track.replace('https://open.spotify.com/track/', '')), guildSettings.playlist_id).then(
 				result => {
 					let resultMessage;
 					if (matches.length === 1) {
@@ -133,6 +134,8 @@ rl.on('SIGINT', () => {
 		process.exit();
 	});
 });
+
+
 
 spotify.authenticate(); // Start the authentication process for Spotify TODO make a promise, .then(connect to Discord)
 client.login(json.token).catch(

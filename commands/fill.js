@@ -77,6 +77,6 @@ module.exports = {
 		}
 
 		message.channel.send('Unable to understand fill command');
-	},
+	}
 };
 

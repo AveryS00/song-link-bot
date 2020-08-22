@@ -7,6 +7,7 @@ const opn = require('opn'); // There's a module for everything! Used once to ope
 const json = require('./config.json');
 
 
+
 const app = express(); // Create a simple http access
 let access_token = ""; // Access token used to act on a Spotify account
 let refresh_time = 0; // The time in seconds since epoch when the access token was refreshed
@@ -57,10 +58,7 @@ app.get('/callback', function(req, res) {
 					json: true
 				};
 				request.get(options, function(error, response, body) {
-					if (typeof body === 'string') {
-						body = body.replace(/\n/g, '');
-						body = JSON.parse(body);
-					}
+					body = handleBody(body);
 
 					if (!error && response.statusCode === 200) {
 						json.spotify_user_id = body.id;
@@ -84,7 +82,18 @@ app.get('/callback', function(req, res) {
 
 const server = app.listen('8888'); // Open the HTTP Server, will be closed when authenticated.
 
-
+/**
+ * Helper function to make sure that incoming bodys are proper JSON
+ * @param body
+ * @return {*}
+ */
+function handleBody(body) {
+	if (typeof body === 'string') {
+		body = body.replace(/\n/g, '');
+		body = JSON.parse(body);
+	}
+	return body;
+}
 
 /**
  * Checks to see if the bot currently has a valid access token.
@@ -109,10 +118,7 @@ function checkAccess() {
 
 		return new Promise(function (resolve, reject) {
 			request.post(authOptions, function (error, response, body) {
-				if (typeof body === 'string') {
-					body = body.replace(/\n/g, '');
-					body = JSON.parse(body);
-				}
+				body = handleBody(body);
 
 				if (!error && response.statusCode === 200) {
 					access_token = body.access_token;
@@ -175,10 +181,7 @@ function getIdsByOffset(playlistId, offset) {
 
 	return new Promise(function (resolve, reject) {
 		request.get(options, function(error, response, body) {
-			if (typeof body === 'string') {
-				body = body.replace(/\n/g, '');
-				body = JSON.parse(body);
-			}
+			body = handleBody(body);
 
 			if (!error && response.statusCode === 200) {
 				console.log(`Successfully got tracks ${offset + 1}-${offset+body.items.length} from playlist: ${playlistId}`);
@@ -222,6 +225,8 @@ async function removeDuplicates(tracks, playlistId) {
 
 	return trackList;
 }
+
+
 
 /**
  * Check for an existing refresh token, if none, request authorization from a Spotify account.
@@ -270,10 +275,7 @@ exports.createPlaylist = async function (guildName) {
 
 	return await new Promise(function(resolve, reject) {
 		request.post(options, function(error, response, body) {
-			if (typeof body === 'string') {
-				body = body.replace(/\n/g, '');
-				body = JSON.parse(body);
-			}
+			body = handleBody(body);
 
 			if (!error && (response.statusCode === 200 || response.statusCode === 201)) {
 				console.log(`Body: ${body}`);
@@ -319,10 +321,7 @@ exports.addSong = async function (track, playlistId) {
 
 	return await new Promise(function(resolve, reject) {
 		request.post(options, function(error, response, body) {
-			if (typeof body === 'string') {
-				body = body.replace(/\n/g, '');
-				body = JSON.parse(body);
-			}
+			body = handleBody(body);
 
 			if (!error && response.statusCode === 201) {
 				console.log(`Added song to playlistId: ${playlistId}`);
@@ -350,7 +349,7 @@ exports.batchAddSongs = async function (tracks, playlistId) {
 
 	let songsAdded = 0;
 	for (let i = 0; i < Math.ceil(tracks.length / 100); i++) {
-		const numSongsToAdd = Math.min(tracks.length, i*100 + 99);
+		const lastIndex = Math.min(tracks.length, i*100 + 99);
 
 		const options = {
 			url: `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
@@ -360,26 +359,23 @@ exports.batchAddSongs = async function (tracks, playlistId) {
 
 			},
 			body: JSON.stringify({
-				uris: tracks.slice(i*100, numSongsToAdd)
+				uris: tracks.slice(i*100, lastIndex)
 			}),
 			dataType: 'json'
 		};
 
 		songsAdded += await new Promise(function(resolve, reject) {
 			request.post(options, function (error, response, body) {
-				if (typeof body === 'string') {
-					body = body.replace(/\n/g, '');
-					body = JSON.parse(body);
-				}
+				body = handleBody(body);
 
 				if (!error && response.statusCode === 201) {
-					console.log(`Added ${numSongsToAdd} songs to playlistId: ${playlistId}\n`);
-					resolve(numSongsToAdd);
+					console.log(`Added ${lastIndex % 100} songs to playlistId: ${playlistId}\n`);
+					resolve(lastIndex % 100);
 				} else {
-					console.log(`Could not add ${numSongsToAdd} songs to playlistId: ${playlistId}`);
+					console.log(`Could not add ${lastIndex % 100} songs to playlistId: ${playlistId}`);
 					console.log(`Status code: ${response.statusCode}`);
 					console.log(`Error Message: ${body.error.message}\n`);
-					reject(new Error(`Could not add ${numSongsToAdd} songs: ${body.error.message}`));
+					reject(new Error(`Could not add ${lastIndex % 100} songs: ${body.error.message}`));
 				}
 			});
 		});
@@ -388,10 +384,56 @@ exports.batchAddSongs = async function (tracks, playlistId) {
 	return songsAdded;
 };
 
-// Clears the entire playlist to be filled again.
-// !!! TODO
-exports.clearPlaylist = function (playlistId) {
+/**
+ * Clears the entire playlist
+ * @param {String} playlistId The id of the playlist to clear
+ * @return {Promise<boolean>} Always returns true, if it were to fail, it would throw an error instead
+ */
+exports.clearPlaylist = async function (playlistId) {
+	await checkAccess();
 
+	let trackList = await getAllIds(playlistId);
+
+	for (let i = 0; i < Math.ceil(trackList.length / 100); i++) {
+		const lastIndex = Math.min(trackList.length, i*100 + 99);
+
+		const tracks = {
+			tracks: trackList.values.slice(i*100, lastIndex).map(value => {
+				return { uri: value };
+			})
+		}; // Specific formatting needed for deletion by Spotify API
+
+		const options = {
+			url: `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
+			headers: {
+				'Authorization': `Bearer ${access_token}`,
+				'Content-Type': 'application/json'
+
+			},
+			body: JSON.stringify({
+				tracks
+			}),
+			dataType: 'json'
+		};
+
+		await new Promise(function(resolve, reject) {
+			request.delete(options, function (error, response, body) {
+				body = handleBody(body);
+
+				if (!error && response.statusCode === 200) {
+					console.log(`Deleted ${lastIndex % 100} songs to playlistId: ${playlistId}`);
+					resolve(lastIndex % 100);
+				} else {
+					console.log(`Could not delete ${lastIndex % 100} songs to playlistId: ${playlistId}`);
+					console.log(`Status code: ${response.statusCode}`);
+					console.log(`Error Message: ${body.error.message}\n`);
+					reject(new Error(`Could not delete ${lastIndex % 100} songs: ${body.error.message}`));
+				}
+			});
+		});
+	}
+	console.log(`Deleted all contents of playlist: ${playlistId}\n`);
+	return true;
 };
 
 exports.getRefreshToken = () => json.spotify_refresh_token; // Have to send the refresh token back to index.js to be saved
