@@ -27,7 +27,6 @@ If you are self-hosting, you have direct control over this list in the config.js
 All of the set commands require admin privileges.
 
 ### fill
-(not implemented yet)
 ``fill [number]``
 This will fill the Spotify playlist with links going back ``number`` amount of messages. If number is ommitted, it will attempt to read the entire channel.
 Admin privileges are required for this command. There is a time gate of 3 hours before using this command again.

@@ -67,7 +67,7 @@ client.on('message', message => {
 				},
 				error => {
 					console.log(`Unable to add song ${track} to server ${message.guild.id}/${message.guild.name} sent by ${message.member.displayName}\n`);
-					helper.logToDiscord(client, guildSettings.logging_channel,`Unable to add song ${track} sent by ${message.member.displayName}\n\n${error.message}`);
+					helper.logToDiscord(client, guildSettings.logging_channel,`Unable to add song ${track} sent by ${message.member.displayName}\n${error.message}`);
 				});
 		}
 

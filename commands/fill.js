@@ -12,9 +12,10 @@ async function getAllSongs(messageManager, maxMessage) {
 	let currentMessage = 0;
 
 	// While there are still messages to get or until maxMessage
-	while (messageList.size !== 0 && currentMessage < maxMessage) {
+	while (messageList.size !== 0) {
 		// Iterate through the messages
 		for (let message of messageList.values()) {
+			if (currentMessage === maxMessage) { return songList; } // Hit cap, return early
 			// Message has at least one Spotify link
 			if (message.content.match(/https:\/\/open.spotify.com\/track\/[a-zA-Z0-9]+/g) !== null) {
 				for (let track of message.content.match(/https:\/\/open.spotify.com\/track\/[a-zA-Z0-9]+/g)) {
@@ -26,14 +27,13 @@ async function getAllSongs(messageManager, maxMessage) {
 		}
 
 		// Get the next set of 100 messages starting at the final message of the last set
-		messageList = await messageManager.fetch({limit: 100, after: messageList.lastMessageID}, false, true);
+		messageList = await messageManager.fetch({limit: 100, before: messageList.last().id}, false, true);
 	}
 
 	return songList;
 }
 
 function handleError(message, error, guildSettings) {
-	console.log(`Error adding songs to playlist ${guildSettings.playlist_id} for ${message.guild.name}. Error: ${error}`);
 	helper.logToDiscord(message.client, guildSettings.logging_channel,`Error adding songs to playlist ${guildSettings.playlist_id}. Error: ${error}` );
 }
 
@@ -48,11 +48,10 @@ module.exports = {
 			const maxMessages = parseInt(args[0], 10);
 			console.log(`Attempting to fill playlist`)
 			if (!isNaN(maxMessages)) {
-				getAllSongs(message.channel.messages, maxMessages).then(
+				getAllSongs(message.channel.messages, maxMessages + 1).then(
 					result => {
 						spotify.batchAddSongs(result, guildSettings.playlist_id).then(
 							result => {
-								console.log(`Successfully added ${result} songs to playlist ${guildSettings.playlist_id} for ${message.guild.name}`);
 								helper.logToDiscord(message.client, guildSettings.logging_channel, `Successfully added ${result} songs to playlist ${guildSettings.playlist_id}`);
 							},
 							error => { handleError(message, error, guildSettings); }
@@ -68,7 +67,6 @@ module.exports = {
 				result => {
 					spotify.batchAddSongs(result, guildSettings.playlist_id).then(
 						result => {
-							console.log(`Successfully added ${result} songs to playlist ${guildSettings.playlist_id} for ${message.guild.name}`);
 							helper.logToDiscord(message.client, guildSettings.logging_channel, `Successfully added ${result} songs to playlist ${guildSettings.playlist_id}`);
 						},
 						error => { handleError(message, error, guildSettings); }
