@@ -47,11 +47,34 @@ app.get('/callback', function(req, res) {
 				expires_in = body.expires_in;
 				json.spotify_refresh_token = body.refresh_token;
 				
-			    console.log('Access tokens acquired, closing server\n');
+			    console.log('Access tokens acquired, closing server');
 				server.close(); // Close the server as I won't need it anymore.
+
+				// Get the spotify user id
+				const options = {
+					url: 'https://api.spotify.com/v1/me',
+					headers: { 'Authorization': `Bearer ${access_token}`},
+					json: true
+				};
+				request.get(options, function(error, response, body) {
+					if (typeof body === 'string') {
+						body = body.replace(/\n/g, '');
+						body = JSON.parse(body);
+					}
+
+					if (!error && response.statusCode === 200) {
+						json.spotify_user_id = body.id;
+						console.log('Able to get spotify user id from authorization\n');
+					} else {
+						console.log('Unable to get user id. Please enter manually before continuing operation\n');
+						console.log(`Status Code: ${response.statusCode}`);
+						console.log(`Error: ${body.error.message}`);
+					}
+				});
+
 			} else {
 				// Fail! Print why and close the bot.
-				console.log(`Error: ${error}`);
+				console.log(`Error: ${body.error_description}`);
 				console.log(`Status Code: ${response.statusCode}`);
 				process.exit();
 			}
@@ -73,7 +96,7 @@ function checkAccess() {
 	if (json.spotify_refresh_token === "") throw new Error('No refresh token');
 
 	const currentTime = new Date().getTime() / 1000;
-	if (refresh_time + expires_in >= currentTime || access_token === "") {
+	if (refresh_time + expires_in <= currentTime || access_token === "") {
 		const authOptions = {
 			url: 'https://accounts.spotify.com/api/token',
 			headers: { 'Authorization': 'Basic ' + (new Buffer(json.spotify_id + ':' + json.spotify_secret).toString('base64'))},
@@ -202,7 +225,6 @@ async function removeDuplicates(tracks, playlistId) {
 
 /**
  * Check for an existing refresh token, if none, request authorization from a Spotify account.
- * TODO add user_id to JSON config programmatically.
  */
 exports.authenticate = function () {
 	if (json.spotify_refresh_token === "") {
@@ -268,6 +290,7 @@ exports.createPlaylist = async function (guildName) {
 };
 
 /**
+ * DEPRECATED, for the future, all additions to a playlist should go through batchAdd
  * Adds the given track to the given playlist.
  * Throws errors from checkAccess() if an issue occurs there.
  * @param {String} track The id of the song

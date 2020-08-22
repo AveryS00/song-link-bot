@@ -5,14 +5,15 @@ YouTube functionality will be implemented at a later date
 
 To add this bot to your server, I am hosting one but cannot guarantee reliable uptime. The link to invite it is here: https://discord.com/oauth2/authorize?client_id=736308578721202276&scope=bot
 
-Once added, type the following command into any channel ``!set music_channel <your-channel-here>`` and the bot is ready to go!
+Once added, give the bot permissions to read messages and message history of the channel you want it to read from, and permissions to send messages to the channel you want it to log to.
+Type the following command into any channel the bot can read ``!set music_channel <your-channel-here>`` and the bot is ready to go! It's highly suggested you also set logging channel right away as well
+using ``!set logging_channel <your-channel-here>``.
 
 ## Known Issues
 ```
-Bot cannot read private channels that users want to be read
-Deleting a channel the bot is reading/writing to causes it to have to be reinvited to the server
-Access Token refreshes too often
-Multiple songs in one message should use batchAdd instead of songAdd
+Unknown interaction of what happens when using fill command over a song that doesn't exist
+reset not implemented
+caching not implemented
 ```
 
 ## Commands:
@@ -20,13 +21,13 @@ All of these commands will be started with a prefix, so I have omitted it. The p
 
 ### set
 ``set music_channel <channel-name>``
-This will set the channel that the Discord bot will read from. Once set, the bot will ONLY read from this channel and no other channel. That includes other commands as well as Spotify links.
+This will set the channel that the Discord bot will read from. Once set, the bot will ONLY read from this channel and no other channel. That includes other commands as well as Spotify links. This channel must be a text channel.
 
 When entering a ``<channel-name>``, you either must match the name exactly or use the ``#channel-name`` option from Discord. If your channel has an emoji, use the # version.
 
 
 ``set logging_channel <channel-name>``
-This will set the channel that the Discord bot will write (but not read) logs to. Logging will take place when a user sends a spotify link into the ``music_channel``. The bot will send a message indicating whether it succeeded or not to add it to the server playlist. ``<channel-name>`` formatting is the same as the above commmand.
+This will set the channel that the Discord bot will write (but not read) logs to. This channel must be a text channel. Logging will take place when a user sends a spotify link into the ``music_channel``. The bot will send a message indicating whether it succeeded or not to add it to the server playlist. ``<channel-name>`` formatting is the same as the above commmand.
 
 ``set prefix <prefix>``
 This will change the prefix to the given value in prefix, if it is one of the acceptable prefixes. Currently acceptable prefixes are ``! !! . .. ? ?? & && + ++``. If you have a different prefix that you would like to be added to this list, send me a pull request if you know how to do so, or a message through any form of media.
@@ -56,9 +57,9 @@ To host this bot yourself follow these instructions:
 2) Clone this repository into a folder on that machine.
 3) Install node.js.
 4) Go to the Discord Developer portal and create a new app. In that app create a new bot. Take the bot token and fill into the template config.
-5) Do the same for Spotify.
+5) Do the same for Spotify. Add the Spotify client_id, spotify_secret, and your account's user_id. The rest will autofill.
 6) Run the bot ``node index.js``.
-7) Authorize a spotify account when prompted.
+7) Authorize a spotify account when prompted, this account should be one where you are OK with the creation of new playlists.
 8) Add the bot to your server(s). 
 
 The rest of this readme is more technical writing to help me focus on features I wanted to implement.
