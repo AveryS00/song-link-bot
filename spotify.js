@@ -122,7 +122,7 @@ async function getAllIds(playlistId) {
 
 	while (idList.length !== 0) {
 		for (let track of idList) {
-			idDict[idList[track].track.id] = `spotify:track:${idList[track].track.id}`;
+			idDict[track.track.id] = `spotify:track:${track.track.id}`;
 		}
 		offset += 100;
 		idList = await getIdsByOffset(playlistId, offset);
@@ -193,6 +193,7 @@ async function removeDuplicates(tracks, playlistId) {
 	for (let track of tracks) {
 		if (!(track in playlist)) {
 			trackList.push(`spotify:track:${track}`);
+			playlist[track] = `spotify:track:${track}`;
 		}
 	}
 
@@ -326,7 +327,7 @@ exports.batchAddSongs = async function (tracks, playlistId) {
 
 	let songsAdded = 0;
 	for (let i = 0; i < Math.ceil(tracks.length / 100); i++) {
-		const numSongsToAdd = Math.min(tracks.length - 1, i*100 + 99);
+		const numSongsToAdd = Math.min(tracks.length, i*100 + 99);
 
 		const options = {
 			url: `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
@@ -349,12 +350,12 @@ exports.batchAddSongs = async function (tracks, playlistId) {
 				}
 
 				if (!error && response.statusCode === 201) {
-					console.log(`Added ${numSongsToAdd} songs to playlistId: ${playlistId}`);
+					console.log(`Added ${numSongsToAdd} songs to playlistId: ${playlistId}\n`);
 					resolve(numSongsToAdd);
 				} else {
 					console.log(`Could not add ${numSongsToAdd} songs to playlistId: ${playlistId}`);
 					console.log(`Status code: ${response.statusCode}`);
-					console.log(`Error Message: ${body.error.message}`);
+					console.log(`Error Message: ${body.error.message}\n`);
 					reject(new Error(`Could not add ${numSongsToAdd} songs: ${body.error.message}`));
 				}
 			});
