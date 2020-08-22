@@ -2,7 +2,7 @@
 module.exports = {
 	name: 'set',
 	description: 'Configure settings for the bot, such as music channel, logging channel, and prefix',
-	execute(message, args, json) {
+	execute(message, args, json, spotify) {
 		if (!message.member.permissions.any(268435638)) return; 
 		// Magic permissions number, basically if the sender cannot moderate, don't let them use this.
 		
@@ -60,7 +60,7 @@ module.exports = {
 			return;
 		}
 
-		message.reply('Unable to understand set command');
+		message.channel.send('Unable to understand set command');
 	},
 };
 
