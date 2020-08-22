@@ -53,7 +53,7 @@ client.on('message', message => {
 	
 	if (guildSettings.music_channel !== '' && message.channel.id !== guildSettings.music_channel) return;
 
-	if (guildSettings.operational && guildSettings.music_channel !== '' 
+	if (guildSettings.operational && guildSettings.music_channel !== '' && !message.author.bot
 		&& message.content.match(/https:\/\/open.spotify.com\/track\/[a-zA-Z0-9]+/g) !== null) {
 
 		// Found a message with spotify links. Add it to the playlist and log.
