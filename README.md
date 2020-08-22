@@ -7,6 +7,14 @@ To add this bot to your server, I am hosting one but cannot guarantee reliable u
 
 Once added, type the following command into any channel ``!set music_channel <your-channel-here>`` and the bot is ready to go!
 
+## Known Issues
+```
+Bot cannot read private channels that users want to be read
+Deleting a channel the bot is reading/writing to causes it to have to be reinvited to the server
+Access Token refreshes too often
+Multiple songs in one message should use batchAdd instead of songAdd
+```
+
 ## Commands:
 All of these commands will be started with a prefix, so I have omitted it. The prefix will depend on what you set it to be. By default, the prefix is ``!``.
 
