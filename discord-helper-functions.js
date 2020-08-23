@@ -1,6 +1,7 @@
+// discord-helper-functions.js
+// Author: Avery Smith (ajsmith2@wpi.edu)
 
 /**
- * TODO will crash if admin deletes logging channel (actually doesn't but requires a reset)
  * Send a logging message to the logging channel if it has been set. If not, do nothing
  * @param {Client} client The connected Discord client
  * @param {String} channelId The id of the channel to send the message to

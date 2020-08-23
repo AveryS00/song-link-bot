@@ -1,9 +1,9 @@
 # discord-bot
-This Discord bot will read messages from a music channel and add all Spotify links that it finds to a playlist it creates. To run this bot a Spotify account is required, but Premium is not necessary. Therefore, it is HIGHLY recommended to create a new free account just for the bot.
+This Discord bot will read messages from a music channel and add all Spotify links that it finds to a playlist it creates. A Spotify account is required to host this bot yourself, but Premium is not necessary. Therefore, it is HIGHLY recommended creating a new free account just for the bot.
 
 YouTube functionality will be implemented at a later date
 
-To add this bot to your server, I am hosting one but cannot guarantee reliable uptime. The link to invite it is here: https://discord.com/oauth2/authorize?client_id=736308578721202276&scope=bot
+To add this bot to your server, I am hosting one but cannot guarantee a reliable uptime. The link to invite it is here: https://discord.com/oauth2/authorize?client_id=736308578721202276&scope=bot
 
 Once added, give the bot permissions to read messages and message history of the channel you want it to read from, and permissions to send messages to the channel you want it to log to.
 Type the following command into any channel the bot can read ``!set music_channel <your-channel-here>`` and the bot is ready to go! It's highly suggested you also set logging channel right away as well
@@ -12,12 +12,12 @@ using ``!set logging_channel <your-channel-here>``.
 ## Known Issues
 ```
 Unknown interaction of what happens when using fill command over a song that doesn't exist
-Need to test: adding 100 or more songs, playlists with more than 100 songs.
-fill command not time gated
-reset not implemented
+fill and reset command not time gated
 caching not implemented
 no help command, likely implementation is to just redirect to this github when asked
 ```
+
+Please submit any and all issues that you find either through GitHub, or my email: as@averysmith.net
 
 ## Commands:
 All of these commands will be started with a prefix, so I have omitted it. The prefix will depend on what you set it to be. By default, the prefix is ``!``.
@@ -30,21 +30,20 @@ When entering a ``<channel-name>``, you either must match the name exactly or us
 
 
 ``set logging_channel <channel-name>``
-This will set the channel that the Discord bot will write (but not read) logs to. This channel must be a text channel. Logging will take place when a user sends a spotify link into the ``music_channel``. The bot will send a message indicating whether it succeeded or not to add it to the server playlist. ``<channel-name>`` formatting is the same as the above commmand.
+This will set the channel that the Discord bot will write (but not read) logs to. This channel must be a text channel. Logging will take place when a user sends a spotify link into the ``music_channel``. The bot will send a message indicating whether it succeeded or not to add it to the server playlist. ``<channel-name>`` formatting is the same as the above command.
 
 ``set prefix <prefix>``
-This will change the prefix to the given value in prefix, if it is one of the acceptable prefixes. Currently acceptable prefixes are ``! !! . .. ? ?? & && + ++``. If you have a different prefix that you would like to be added to this list, send me a pull request if you know how to do so, or a message through any form of media.
+This will change the prefix to the given value in prefix, if it is one of the acceptable prefixes. Currently, acceptable prefixes are ``! !! . .. ? ?? & && + ++``. If you have a different prefix that you would like to be added to this list, send me a pull request if you know how to do so, or a message through any form of media.
 If you are self-hosting, you have direct control over this list in the config.json.
 
-All of the set commands require moderator privileges.
+All the set commands require moderator privileges.
 
 ### fill
 ``fill [number]``
-This will fill the Spotify playlist with links going back ``number`` amount of messages. If number is ommitted, it will attempt to read the entire channel.
+This will fill the Spotify playlist with links going back ``number`` amount of messages. If number is omitted, it will attempt to read the entire channel.
 Admin privileges are required for this command. There is a time gate of 3 hours before using this command again.
 
 ### reset
-(not implemented yet)
 ``reset``
 This will completely clear the Spotify playlist associated with the server. Admin privileges are required for this command. There is a time gate of 3 hours before using this command again.
 
@@ -53,7 +52,7 @@ This will completely clear the Spotify playlist associated with the server. Admi
 The bot will reply with a link to view the Spotify playlist. Anyone can use this command.
 
 ### add song
-This is not a 'command' per say. Anytime a spotify link is sent in the ``music_channel``, the bot will take it and place it in the server playlist. The success or failure is then marked in the ``logging_channel``.
+This is not a 'command' per se. Anytime a spotify link is sent in the ``music_channel``, the bot will take it and place it in the server playlist. The success or failure is then marked in the ``logging_channel``.
 
 ## Self Hosting
 

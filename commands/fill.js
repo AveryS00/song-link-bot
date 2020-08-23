@@ -1,3 +1,6 @@
+// fill.js
+// Author: Avery Smith (ajsmith2@wpi.edu)
+
 const helper = require('../discord-helper-functions');
 
 /**
@@ -56,6 +59,13 @@ module.exports = {
 		if (!message.member.permissions.any(268435638)) return; // Sender needs moderator permissions
 
 		const guildSettings = json.server_list[message.guild.id];
+		const currentTime = new Date().getTime();
+
+		// 3 hour time gate on using this command
+		if (guildSettings.fill_cooldown + 10800000 >= currentTime) {
+			message.channel.send(`3 hour time limit on using this command, please wait ${guildSettings.fill_cooldown + 10800000 - currentTime} more milliseconds.`);
+			return;
+		}
 
 		if (args.length === 1) {
 			const maxMessages = parseInt(args[0], 10);
@@ -65,6 +75,7 @@ module.exports = {
 					result => { sendSongsToSpotify(spotify, result, guildSettings, message.client); },
 					error => { helper.logToDiscord(message.client, guildSettings.logging_channel,`Error adding songs to playlist ${guildSettings.playlist_id}. Error: ${error}`); }
 				);
+				guildSettings.fill_cooldown = currentTime;
 				return;
 			}
 		} else if (args.length === 0) {
@@ -73,6 +84,7 @@ module.exports = {
 				result => { sendSongsToSpotify(spotify, result, guildSettings, message.client); },
 				error => { helper.logToDiscord(message.client, guildSettings.logging_channel,`Error adding songs to playlist ${guildSettings.playlist_id}. Error: ${error}`); }
 			);
+			guildSettings.fill_cooldown = currentTime;
 			return;
 		}
 

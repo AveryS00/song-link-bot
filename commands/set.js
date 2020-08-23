@@ -1,3 +1,5 @@
+// set.js
+// Author: Avery Smith (ajsmith2@wpi.edu)
 
 module.exports = {
 	name: 'set',
