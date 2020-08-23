@@ -1,3 +1,6 @@
+// spotify.js
+// Author: Avery Smith (ajsmith2@wpi.edu)
+
 const querystring = require('querystring');
 
 const express = require('express'); // These require NPM Installs
@@ -83,7 +86,7 @@ app.get('/callback', function(req, res) {
 const server = app.listen('8888'); // Open the HTTP Server, will be closed when authenticated.
 
 /**
- * Helper function to make sure that incoming bodys are proper JSON
+ * Helper function to make sure that the incoming body is proper JSON
  * @param body
  * @return {*}
  */
@@ -347,6 +350,10 @@ exports.batchAddSongs = async function (tracks, playlistId) {
 
 	tracks = await removeDuplicates(tracks, playlistId);
 
+	if (tracks.length === 0) {
+		throw new Error('Did not add song(s) to playlist, all duplicates');
+	}
+
 	let songsAdded = 0;
 	for (let i = 0; i < Math.ceil(tracks.length / 100); i++) {
 		const lastIndex = Math.min(tracks.length, i*100 + 99);
@@ -359,7 +366,7 @@ exports.batchAddSongs = async function (tracks, playlistId) {
 
 			},
 			body: JSON.stringify({
-				uris: tracks.slice(i*100, lastIndex)
+				uris: tracks.slice(i*100, lastIndex + 1)
 			}),
 			dataType: 'json'
 		};
@@ -369,7 +376,7 @@ exports.batchAddSongs = async function (tracks, playlistId) {
 				body = handleBody(body);
 
 				if (!error && response.statusCode === 201) {
-					console.log(`Added ${lastIndex % 100} songs to playlistId: ${playlistId}\n`);
+					console.log(`Added ${lastIndex % 100} songs to playlistId: ${playlistId}`);
 					resolve(lastIndex % 100);
 				} else {
 					console.log(`Could not add ${lastIndex % 100} songs to playlistId: ${playlistId}`);
@@ -381,6 +388,7 @@ exports.batchAddSongs = async function (tracks, playlistId) {
 		});
 	}
 
+	console.log('Done adding songs\n');
 	return songsAdded;
 };
 
@@ -394,14 +402,12 @@ exports.clearPlaylist = async function (playlistId) {
 
 	let trackList = await getAllIds(playlistId);
 
-	for (let i = 0; i < Math.ceil(trackList.length / 100); i++) {
-		const lastIndex = Math.min(trackList.length, i*100 + 99);
+	for (let i = 0; i < Math.ceil(Object.keys(trackList).length / 100); i++) {
+		const lastIndex = Math.min(Object.keys(trackList).length, i*100 + 99);
 
-		const tracks = {
-			tracks: trackList.values.slice(i*100, lastIndex).map(value => {
-				return { uri: value };
-			})
-		}; // Specific formatting needed for deletion by Spotify API
+		const tracks = Object.values(trackList).slice(i*100, lastIndex + 1).map(value => {
+				 return { uri: value };
+			 }); // Specific formatting needed for deletion by Spotify API
 
 		const options = {
 			url: `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
@@ -411,7 +417,7 @@ exports.clearPlaylist = async function (playlistId) {
 
 			},
 			body: JSON.stringify({
-				tracks
+				tracks: tracks
 			}),
 			dataType: 'json'
 		};

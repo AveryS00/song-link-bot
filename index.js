@@ -1,3 +1,6 @@
+// index.js
+// Author: Avery Smith (ajsmith2@wpi.edu)
+
 const fs = require('fs');
 const rl = require('readline').createInterface({
 	input: process.stdin,
@@ -76,7 +79,7 @@ client.on('message', message => {
 					if (matches.length === 1) {
 						resultMessage = `Could not add song \<${matches[0]}\> sent by ${message.member.displayName}.\nError: ${error.message}`; // Template format doesn't like my angled brackets
 					} else {
-						resultMessage = `Error adding ${matches.length} songs to playlist ${guildSettings.playlist_id} sent by ${message.member.displayName}.\nError: ${error}`;
+						resultMessage = `Error adding ${matches.length} songs to playlist ${guildSettings.playlist_id} sent by ${message.member.displayName}.\n${error}`;
 					}
 					helper.logToDiscord(client, guildSettings.logging_channel, resultMessage);
 				});
@@ -137,7 +140,7 @@ rl.on('SIGINT', () => {
 
 
 
-spotify.authenticate(); // Start the authentication process for Spotify TODO make a promise, .then(connect to Discord)
+spotify.authenticate(); // Start the authentication process for Spotify
 client.login(json.token).catch(
 	error => {
 		console.log(`Couldn't connect to Discord. Error: ${error}`);
