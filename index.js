@@ -36,7 +36,9 @@ client.on('guildCreate', guild => {
 		'logging_channel': '',
 		'playlist_id': '',
 		'prefix': '!',
-		'operational': true
+		'operational': true,
+		'fill_cooldown': 0,
+		'reset_cooldown': 0
 	};
 	
 	// Try to give the server a playlist, if unable, don't let the server do anything.
