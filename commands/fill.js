@@ -72,7 +72,7 @@ module.exports = {
 			if (!isNaN(maxMessages)) {
 				console.log(`Attempting to fill ${maxMessages} messages to playlist for guild: ${message.guild.id}/${message.guild.name}`);
 				getAllSongs(message.channel.messages, maxMessages + 1).then(
-					result => { sendSongsToSpotify(spotify, result, guildSettings, message.client); },
+					result => { sendSongsToSpotify(spotify, result.reverse(), guildSettings, message.client); }, // Reverse the result so they are added with oldest messages at the top of the playlist
 					error => { helper.logToDiscord(message.client, guildSettings.logging_channel,`Error adding songs to playlist ${guildSettings.playlist_id}. Error: ${error}`); }
 				);
 				guildSettings.fill_cooldown = currentTime;
@@ -81,7 +81,7 @@ module.exports = {
 		} else if (args.length === 0) {
 			console.log(`Attempting to fill playlist for guild: ${message.guild.id}/${message.guild.name}`);
 			getAllSongs(message.channel.messages).then(
-				result => { sendSongsToSpotify(spotify, result, guildSettings, message.client); },
+				result => { sendSongsToSpotify(spotify, result.reverse(), guildSettings, message.client); }, // Reverse the result so they are added with oldest messages at the top of the playlist
 				error => { helper.logToDiscord(message.client, guildSettings.logging_channel,`Error adding songs to playlist ${guildSettings.playlist_id}. Error: ${error}`); }
 			);
 			guildSettings.fill_cooldown = currentTime;
