@@ -57,11 +57,13 @@ exports.Cache = function (maxSize) {
                 tracks: idDict,
                 prev: null,
                 next: this.head
-            }; // Create a playlist node object
+            }; // Create a playlist object
             this[playlistId] = playlist;
 
-            this.head.prev = playlist;
-            this.head = playlist;
+            if (this.size !== 0) {
+                this.head.prev = playlist;
+                this.head = playlist;
+            }
 
             if (this.size === this.maxSize) {
                 let tailId = this.tail.id;
@@ -71,6 +73,32 @@ exports.Cache = function (maxSize) {
             } else {
                 this.size++;
             }
+        },
+
+        /**
+         * Add the given tracks to the playlistId in the cache. Should ensure that the playlist is in the cache first.
+         * @param {String} track List of song ids to add, should not exist in playlist already
+         * @param {String} playlistId The playlist to add them to
+         */
+        updateSong: function(track, playlistId) {
+            this[playlistId].tracks[track] = `spotify:track:${track}`;
+        },
+
+        /**
+         * Remove the playlist from the cache
+         * @param {String} playlistId
+         */
+        deletePlaylist: function(playlistId) {
+            if (this[playlistId].prev !== null) {
+                this[playlistId].prev.next = this[playlistId].next;
+            }
+
+            if (this[playlistId].next !== null) {
+                this[playlistId].next.prev = this[playlistId].prev;
+            }
+
+            delete this[playlistId];
+            this.size--;
         }
     };
 };

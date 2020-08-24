@@ -56,6 +56,7 @@ client.on('guildCreate', guild => {
 
 client.on('message', message => {
 	const guildSettings = json.server_list[message.guild.id];
+	if (guildSettings === undefined) return; // edge case for when the bot just joins and a message comes faster than json can be set
 
 	// If the message isn't from the music channel and the music channel is set
 	if (guildSettings.music_channel !== '' && message.channel.id !== guildSettings.music_channel) return;
@@ -70,7 +71,7 @@ client.on('message', message => {
 				result => {
 					let resultMessage;
 					if (matches.length === 1) {
-						resultMessage = `Added song \<${matches[0]}\> sent by ${message.member.displayName}`; // Template format doesn't like my angled brackets
+						resultMessage = `Added song \<${matches[0]}\> sent by ${message.member.user.tag}`; // Template format doesn't like my angled brackets
 					} else {
 						resultMessage = `Successfully added ${result} songs to playlist ${guildSettings.playlist_id}`;
 					}
@@ -79,9 +80,9 @@ client.on('message', message => {
 				error => {
 					let resultMessage;
 					if (matches.length === 1) {
-						resultMessage = `Could not add song \<${matches[0]}\> sent by ${message.member.displayName}.\nError: ${error.message}`; // Template format doesn't like my angled brackets
+						resultMessage = `Could not add song \<${matches[0]}\> sent by ${message.member.user.tag}.\nError: ${error.message}`; // Template format doesn't like my angled brackets
 					} else {
-						resultMessage = `Error adding ${matches.length} songs to playlist ${guildSettings.playlist_id} sent by ${message.member.displayName}.\n${error}`;
+						resultMessage = `Error adding ${matches.length} songs to playlist ${guildSettings.playlist_id} sent by ${message.member.user.tag}.\n${error}`;
 					}
 					helper.logToDiscord(client, guildSettings.logging_channel, resultMessage);
 				});

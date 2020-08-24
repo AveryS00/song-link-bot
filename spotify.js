@@ -129,12 +129,12 @@ function checkAccess() {
 					access_token = body.access_token;
 					refresh_time = new Date().getTime() / 1000;
 					expires_in = body.expires_in;
-					console.log('Access token refreshed\n');
+					console.log(`[${(new Date()).toISOString()}]: Access token refreshed\n`);
 					resolve(access_token);
 				} else {
-					console.log('Tried to refresh access token but unable\n');
+					console.log('Tried to refresh access token but unable');
 					console.log(`Status Code: ${response.statusCode}`);
-					console.log(`Error: ${body.error.message}`);
+					console.log(`[${(new Date()).toISOString()}]: Error: ${body.error.message}\n`);
 					reject(new Error(`Cannot gain access token: ${body.error.message}`));
 				}
 			});
@@ -147,12 +147,13 @@ function checkAccess() {
  * where the ids are the key and the value is the Spotify URI. For Console logs, if
  * the start is less than the end, there were no songs to get.
  * @param {String} playlistId The id for the playlist to get
- * @return {Promise<{String:String}>} A dictionary of ID:URI song key:value pairs
+ * @return {Promise<{}>} A dictionary of ID:URI song key:value pairs
  */
 async function getAllIds(playlistId) {
 	let idDict = cache.get(playlistId); // Try to get from cache first
 
 	if (idDict === null) {
+		idDict = {};
 		let offset = 0;
 		let idList = await getIdsByOffset(playlistId, offset); // Spotify API can only get 100 songs at a time
 
@@ -164,7 +165,7 @@ async function getAllIds(playlistId) {
 			idList = await getIdsByOffset(playlistId, offset);
 		}
 
-		cache.add(idDict); // Add the dictionary to the cache
+		cache.add(idDict, playlistId); // Add the dictionary to the cache
 	}
 
 	return idDict;
@@ -198,7 +199,7 @@ function getIdsByOffset(playlistId, offset) {
 				resolve(body.items);
 			} else {
 				console.log(`Status Code: ${response.statusCode}`);
-				console.log(`Error message: ${body.error.message}`);
+				console.log(`[${(new Date()).toISOString()}]: Error message: ${body.error.message}`);
 				reject(new Error(`Could not get songs in playlist: ${playlistId}, could not check for duplicates: ${body.error.message}`));
 			}
 		});
@@ -228,6 +229,7 @@ async function removeDuplicates(tracks, playlistId) {
 
 	for (let track of tracks) {
 		if (!(track in playlist)) {
+			cache.updateSong(track, playlistId);
 			trackList.push(`spotify:track:${track}`);
 			playlist[track] = `spotify:track:${track}`;
 		}
@@ -287,12 +289,12 @@ exports.createPlaylist = async function (guildName) {
 			body = handleBody(body);
 
 			if (!error && (response.statusCode === 200 || response.statusCode === 201)) {
-				console.log(`Playlist: ${body.id} created for Guild: ${guildName}\n`);
+				console.log(`[${(new Date()).toISOString()}]: Playlist: ${body.id} created for Guild: ${guildName}\n`);
 				resolve(body.id);
 			} else {
 				console.log(`Could not create playlist for ${guildName}`);
 				console.log(`Status code: ${response.statusCode}`);
-				console.log(`Error Message: ${body.error.message}`);
+				console.log(`[${(new Date()).toISOString()}]: Error Message: ${body.error.message}\n`);
 				reject(new Error('Could not create playlist'));
 			}
 		});
@@ -356,7 +358,7 @@ exports.batchAddSongs = async function (tracks, playlistId) {
 	tracks = await removeDuplicates(tracks, playlistId);
 
 	if (tracks.length === 0) {
-		console.log('All song(s) duplicate\n')
+		console.log(`[${(new Date()).toISOString()}]: All song(s) duplicate\n`);
 		throw new Error('Did not add song(s) to playlist, all duplicates');
 	}
 
@@ -387,14 +389,14 @@ exports.batchAddSongs = async function (tracks, playlistId) {
 				} else {
 					console.log(`Could not add ${lastIndex % 100} songs to playlistId: ${playlistId}`);
 					console.log(`Status code: ${response.statusCode}`);
-					console.log(`Error Message: ${body.error.message}\n`);
+					console.log(`[${(new Date()).toISOString()}]: Error Message: ${body.error.message}\n`);
 					reject(new Error(`Could not add ${lastIndex % 100} songs: ${body.error.message}`));
 				}
 			});
 		});
 	}
 
-	console.log('Done adding songs\n');
+	console.log(`[${(new Date()).toISOString()}]: Done adding songs\n`);
 	return songsAdded;
 };
 
@@ -438,13 +440,14 @@ exports.clearPlaylist = async function (playlistId) {
 				} else {
 					console.log(`Could not delete ${lastIndex % 100} songs to playlistId: ${playlistId}`);
 					console.log(`Status code: ${response.statusCode}`);
-					console.log(`Error Message: ${body.error.message}\n`);
+					console.log(`[${(new Date()).toISOString()}]: Error Message: ${body.error.message}\n`);
 					reject(new Error(`Could not delete ${lastIndex % 100} songs: ${body.error.message}`));
 				}
 			});
 		});
 	}
-	console.log(`Deleted all contents of playlist: ${playlistId}\n`);
+	console.log(`[${(new Date()).toISOString()}]: Deleted all contents of playlist: ${playlistId}\n`);
+	cache.deletePlaylist(playlistId);
 	return true;
 };
 
