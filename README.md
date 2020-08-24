@@ -1,5 +1,5 @@
 # discord-bot
-This Discord bot will read messages from a music channel and add all Spotify links that it finds to a playlist it creates. A Spotify account is required to host this bot yourself, but Premium is not necessary. Therefore, it is HIGHLY recommended creating a new free account just for the bot.
+This Discord bot will read messages from a music channel and add all Spotify links that it finds to a playlist it creates.
 
 YouTube functionality will be implemented at a later date
 
@@ -56,6 +56,7 @@ Should you choose to use my bot, I am the sole owner of this bot. As you can see
 These logs are not shared with anyone and are used only for error solving purposes. I will never sell or share data with anyone.
 
 ## Self Hosting
+A Spotify account is required to host this bot yourself, but Premium is not necessary. Therefore, it is HIGHLY recommended creating a new free account just for the bot.
 
 To host this bot yourself follow these instructions:
 1) Find a suitable machine to run this bot, that can either be your own computer that you guarantee will not close, or possibly a cloud instance.
