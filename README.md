@@ -5,7 +5,7 @@ YouTube functionality will be implemented at a later date
 
 To add this bot to your server, I am hosting one but cannot guarantee a reliable uptime. The link to invite it is here: https://discord.com/oauth2/authorize?client_id=736308578721202276&scope=bot
 
-Once added, give the bot permissions to read messages and message history of the channel you want it to read from, and permissions to send messages to the channel you want it to log to.
+Once added, give the bot permissions to read messages, read message history, and send messages to the channel you want it to read from, and permissions to read and send messages to the channel you want it to log to (read is unfortunately required for logging or else the bot cannot see the channel in the first place).
 Type the following command into any channel the bot can read ``!set music_channel <your-channel-here>`` and the bot is ready to go! It's highly suggested you also set logging channel right away as well
 using ``!set logging_channel <your-channel-here>``.
 
