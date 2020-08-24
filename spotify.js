@@ -152,7 +152,7 @@ function checkAccess() {
 async function getAllIds(playlistId) {
 	let idDict = cache.get(playlistId); // Try to get from cache first
 
-	if (playlistId === null) {
+	if (idDict === null) {
 		let offset = 0;
 		let idList = await getIdsByOffset(playlistId, offset); // Spotify API can only get 100 songs at a time
 
