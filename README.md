@@ -12,9 +12,6 @@ using ``!set logging_channel <your-channel-here>``.
 ## Known Issues
 ```
 Unknown interaction of what happens when using fill command over a song that doesn't exist
-fill and reset command not time gated
-caching not implemented
-no help command, likely implementation is to just redirect to this github when asked
 ```
 
 Please submit any and all issues that you find either through GitHub, or my email: as@averysmith.net
@@ -54,17 +51,33 @@ The bot will reply with a link to view the Spotify playlist. Anyone can use this
 ### add song
 This is not a 'command' per se. Anytime a spotify link is sent in the ``music_channel``, the bot will take it and place it in the server playlist. The success or failure is then marked in the ``logging_channel``.
 
+## Privacy and Data Collection
+Should you choose to use my bot, I am the sole owner of this bot. As you can see in the code, I keep logs about command usages which specify guild ids and guild names. I also have access to view and modify all Spotify playlists created by the bot.
+These logs are not shared with anyone and are used only for error solving purposes. I will never sell or share data with anyone.
+
 ## Self Hosting
 
 To host this bot yourself follow these instructions:
 1) Find a suitable machine to run this bot, that can either be your own computer that you guarantee will not close, or possibly a cloud instance.
 2) Clone this repository into a folder on that machine.
 3) Install node.js.
-4) Go to the Discord Developer portal and create a new app. In that app create a new bot. Take the bot token and fill into the template config.
-5) Do the same for Spotify. Add the Spotify client_id and spotify_secret. The rest will autofill.
-6) Run the bot ``node index.js``.
-7) Authorize a spotify account when prompted, this account should be one where you are OK with the creation of new playlists.
-8) Add the bot to your server(s). 
+4) Create a file called ``config.json`` and place it into the same level. Copy and paste the below template into it:
+```
+{
+    "token": "",
+    "spotify_id": "",
+    "spotify_secret": "",
+    "spotify_refresh_token": "",
+    "spotify_user_id": "",
+    "valid_prefixes": ["!", "!!", ".", "..", "?", "??", "&", "&&", "+", "++"],
+    "server_list": {}
+}
+```
+5) Go to the Discord Developer portal and create a new app. In that app create a new bot. Take the bot token and fill into the template config.
+6) Do the same for Spotify. Add the Spotify client_id and spotify_secret. The rest will autofill.
+7) Run the bot ``node index.js``.
+8) Authorize a spotify account when prompted, this account should be one where you are OK with the creation of new playlists.
+9) Add the bot to your server(s). 
 
 The rest of this readme is more technical writing to help me focus on features I wanted to implement.
 ### Actors:

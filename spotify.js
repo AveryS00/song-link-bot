@@ -8,7 +8,7 @@ const request = require('request'); // Deprecated module, for future use ajax or
 const opn = require('opn'); // There's a module for everything! Used once to open the authorization link automatically
 
 const json = require('./config.json');
-
+const cache = require('./playlist-cache').Cache(5); // TODO maxsize as command line argument
 
 
 const app = express(); // Create a simple http access
@@ -85,6 +85,8 @@ app.get('/callback', function(req, res) {
 
 const server = app.listen('8888'); // Open the HTTP Server, will be closed when authenticated.
 
+
+
 /**
  * Helper function to make sure that the incoming body is proper JSON
  * @param body
@@ -148,16 +150,21 @@ function checkAccess() {
  * @return {Promise<{String:String}>} A dictionary of ID:URI song key:value pairs
  */
 async function getAllIds(playlistId) {
-	let idDict = {};
-	let offset = 0;
-	let idList = await getIdsByOffset(playlistId, offset); // Spotify API can only get 100 songs at a time
+	let idDict = cache.get(playlistId); // Try to get from cache first
 
-	while (idList.length !== 0) {
-		for (let track of idList) {
-			idDict[track.track.id] = `spotify:track:${track.track.id}`;
+	if (playlistId === null) {
+		let offset = 0;
+		let idList = await getIdsByOffset(playlistId, offset); // Spotify API can only get 100 songs at a time
+
+		while (idList.length !== 0) {
+			for (let track of idList) {
+				idDict[track.track.id] = `spotify:track:${track.track.id}`;
+			}
+			offset += 100;
+			idList = await getIdsByOffset(playlistId, offset);
 		}
-		offset += 100;
-		idList = await getIdsByOffset(playlistId, offset);
+
+		cache.add(idDict); // Add the dictionary to the cache
 	}
 
 	return idDict;
@@ -245,9 +252,8 @@ exports.authenticate = function () {
 			scope: 'playlist-modify-private',
 			redirect_uri: 'http://localhost:8888/callback'
 		});
-		
-		//console.log(signInStr); 
-		opn(signInStr);
+
+		opn(signInStr); // Opens the link in browser ;)
 	} else {
 		console.log('Spotify access already authorized\n');
 	}
@@ -281,7 +287,6 @@ exports.createPlaylist = async function (guildName) {
 			body = handleBody(body);
 
 			if (!error && (response.statusCode === 200 || response.statusCode === 201)) {
-				console.log(`Body: ${body}`);
 				console.log(`Playlist: ${body.id} created for Guild: ${guildName}\n`);
 				resolve(body.id);
 			} else {
@@ -351,6 +356,7 @@ exports.batchAddSongs = async function (tracks, playlistId) {
 	tracks = await removeDuplicates(tracks, playlistId);
 
 	if (tracks.length === 0) {
+		console.log('All song(s) duplicate\n')
 		throw new Error('Did not add song(s) to playlist, all duplicates');
 	}
 
