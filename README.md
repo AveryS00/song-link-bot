@@ -1,8 +1,6 @@
 # discord-bot
 This Discord bot will read messages from a music channel and add all Spotify links that it finds to a playlist it creates.
 
-YouTube functionality will be implemented at a later date
-
 To add this bot to your server, I am hosting one but cannot guarantee a reliable uptime. The link to invite it is here: https://discord.com/oauth2/authorize?client_id=736308578721202276&scope=bot
 
 Once added, give the bot permissions to read messages, read message history, and send messages to the channel you want it to read from, and permissions to read and send messages to the channel you want it to log to (read is unfortunately required for logging or else the bot cannot see the channel in the first place).
@@ -12,6 +10,8 @@ using ``!set logging_channel <your-channel-here>``.
 ## Known Issues
 ```
 Unknown interaction of what happens when using fill command over a song that doesn't exist
+TODO: Streamline code integration process with existing bots, eg. one import and it's good to go
+TODO: YouTube functionality
 ```
 
 Please submit any and all issues that you find either through GitHub, or my email: as@averysmith.net
@@ -52,8 +52,8 @@ The bot will reply with a link to view the Spotify playlist. Anyone can use this
 This is not a 'command' per se. Anytime a spotify link is sent in the ``music_channel``, the bot will take it and place it in the server playlist. The success or failure is then marked in the ``logging_channel``.
 
 ## Privacy and Data Collection
-Should you choose to use my bot, I am the sole owner of this bot. As you can see in the code, I keep logs about command usages which specify guild ids and guild names. I also have access to view and modify all Spotify playlists created by the bot.
-These logs are not shared with anyone and are used only for error solving purposes. I will never sell or share data with anyone.
+Should you choose to use my bot, I am the sole owner of the bot. As you can see in the code, I keep logs about command usages which specify guild ids and guild names. I also have access to view and modify all Spotify playlists created by the bot.
+These logs are not shared with anyone and are used only for error solving purposes. The logs are destroyed upon resets of the bot. I will never sell or share data with anyone.
 
 ## Self Hosting
 A Spotify account is required to host this bot yourself, but Premium is not necessary. Therefore, it is HIGHLY recommended creating a new free account just for the bot.
