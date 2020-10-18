@@ -12,7 +12,6 @@ using ``!set logging_channel <your-channel-here>``.
 ## Known Issues
 ```
 Unknown interaction of what happens when using fill command over a song that doesn't exist
-Add timestamps to console logs
 ```
 
 Please submit any and all issues that you find either through GitHub, or my email: as@averysmith.net
