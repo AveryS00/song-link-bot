@@ -1,9 +1,9 @@
-# discord-bot
-This Discord bot will read messages from a music channel and add all Spotify links that it finds to a playlist it creates.
+# Song Link Bot
+This Discord bot will read messages from a specified channel and add all Spotify links that it finds to a playlist it creates.
 
-To add this bot to your server, I am hosting one but cannot guarantee a reliable uptime. The link to invite it is here: https://discord.com/oauth2/authorize?client_id=736308578721202276&scope=bot
+I am currently not hosting a running version of this bot. If you would like to run it, you will have to self host. Instructions on how to do so will be written eventually.
 
-Once added, give the bot permissions to read messages, read message history, and send messages to the channel you want it to read from, and permissions to read and send messages to the channel you want it to log to (read is unfortunately required for logging or else the bot cannot see the channel in the first place).
+Once added to a server, give the bot permissions to read messages, read message history, and send messages to the channel you want it to read from, and permissions to read and send messages to the channel you want it to log to (read is unfortunately required for logging or else the bot cannot see the channel in the first place).
 Type the following command into any channel the bot can read ``!set music_channel <your-channel-here>`` and the bot is ready to go! It's highly suggested you also set logging channel right away as well
 using ``!set logging_channel <your-channel-here>``.
 
@@ -12,9 +12,13 @@ using ``!set logging_channel <your-channel-here>``.
 Unknown interaction of what happens when using fill command over a song that doesn't exist
 TODO: Streamline code integration process with existing bots, eg. one import and it's good to go
 TODO: YouTube functionality
+TODO: Optimize flow for adding to a server. By default, read all channels allowed for its permissions. Respond directly to song links if no logging channel set. Add a silent mode for no logging. Add command for updating who has set privileges. Update documentation to reflect these changes.
+TODO: Enhance error handling to include queuing up commands when rate-limited, abstract out shared error handling code
+TODO: Take another look at caching system
+TODO: Proper testing environment which uses secondary bot instead of primary 
 ```
 
-Please submit any and all issues that you find either through GitHub, or my email: as@averysmith.net
+Please submit any and all issues that you find through GitHub. I am particularly interested in error messages that show up on client side.
 
 ## Commands:
 All of these commands will be started with a prefix, so I have omitted it. The prefix will depend on what you set it to be. By default, the prefix is ``!``.
@@ -30,7 +34,7 @@ When entering a ``<channel-name>``, you either must match the name exactly or us
 This will set the channel that the Discord bot will write (but not read) logs to. This channel must be a text channel. Logging will take place when a user sends a spotify link into the ``music_channel``. The bot will send a message indicating whether it succeeded or not to add it to the server playlist. ``<channel-name>`` formatting is the same as the above command.
 
 ``set prefix <prefix>``
-This will change the prefix to the given value in prefix, if it is one of the acceptable prefixes. Currently, acceptable prefixes are ``! !! . .. ? ?? & && + ++``. If you have a different prefix that you would like to be added to this list, send me a pull request if you know how to do so, or a message through any form of media.
+This will change the prefix to the given value in prefix, if it is one of the acceptable prefixes. Currently, acceptable prefixes are ``! !! . .. ? ?? & && + ++``. If you have a different prefix that you would like to be added to this list, create a GitHub issue.
 If you are self-hosting, you have direct control over this list in the config.json.
 
 All the set commands require moderator privileges.
@@ -46,20 +50,20 @@ This will completely clear the Spotify playlist associated with the server. Admi
 
 ### playlist
 ``playlist``
-The bot will reply with a link to view the Spotify playlist. Anyone can use this command.
+The bot will reply directly with a link to view the Spotify playlist. Anyone can use this command.
 
 ### add song
-This is not a 'command' per se. Anytime a spotify link is sent in the ``music_channel``, the bot will take it and place it in the server playlist. The success or failure is then marked in the ``logging_channel``.
+This is not a command. Anytime a spotify link is sent in the ``music_channel``, the bot will take it and place it in the server playlist. The success or failure is then marked in the ``logging_channel``.
 
 ## Privacy and Data Collection
-Should you choose to use my bot, I am the sole owner of the bot. As you can see in the code, I keep logs about command usages which specify guild ids and guild names. I also have access to view and modify all Spotify playlists created by the bot.
+Should you choose to use the bot I host, I keep logs about command usages which specify guild ids, guild names, and usernames for the associated call. I also have access to view and modify all Spotify playlists created by the bot.
 These logs are not shared with anyone and are used only for error solving purposes. The logs are destroyed upon resets of the bot. I will never sell or share data with anyone.
 
 ## Self Hosting
 A Spotify account is required to host this bot yourself, but Premium is not necessary. Therefore, it is HIGHLY recommended creating a new free account just for the bot.
 
-To host this bot yourself follow these instructions:
-1) Find a suitable machine to run this bot, that can either be your own computer that you guarantee will not close, or possibly a cloud instance.
+To host this bot yourself follow these instructions (INCOMPLETE):
+1) Find a suitable machine to run this bot, that can either be your own computer that you guarantee will not close, or a cloud instance.
 2) Clone this repository into a folder on that machine.
 3) Install node.js.
 4) Create a file called ``config.json`` and place it into the same level. Copy and paste the below template into it:
@@ -80,88 +84,3 @@ To host this bot yourself follow these instructions:
 8) Authorize a spotify account when prompted, this account should be one where you are OK with the creation of new playlists.
 9) Add the bot to your server(s). 
 
-The rest of this readme is more technical writing to help me focus on features I wanted to implement.
-### Actors:
-	Bot: The system that the users and admins interact with.
-	Admin: A person that has control over the bot, and higher privileges than the user to operate specific tasks.
-	User: A person that interacts with the bot through song submissions and playlist viewing.
-
-## Use Cases:
-### Admin:
-	set input channel
-	set logging channel
-	fill playlist
-	reset playlist
-	change bot call modifier
-		
-### User:
-	view playlist
-	add song to playlist
-		
-### Set Input Channel
-```
-Precondition: Bot is in at least one channel
-Participating Actor: Admin
-Postcondition: Bot will only read messages from set channel
-Flow of Events: 1) Admin requests a setting of the channel that the bot will read messages from.
-		2) Bot checks that the channel given is a proper channel in the Discord.
-		Bot stores the channel it will read input from and responds to admin that the input channel
-		has been set. Bot replies directly that the channel has been set for reading.
-```
-### Set Logging Channel
-```
-Precondition: Bot is reading from a set channel
-Participating Actor: Admin
-Postcondition: Bot will relay all responses from set channel
-Flow of Events: 1) Admin requests in a channel that the bot is reading, that the bot display all 
-		responses in a specific channel.
-		2) Bot checks that the channel given is a proper channel in the Discord.
-		Bot stores the channel it will log to, and replies directly to the Admin's request.
-```
-
-### Fill Playlist
-```
-Precondition: Bot is reading from a set channel
-Participating Actor: Admin
-Postcondition: Playlist is filled with all shared music in the set channel
-Flow of Events: 1) Admin requests a fill of the playlist.
-		2) Bot will read through the channel and add all Spotify links it finds to the playlist,
-		ignoring duplicates and other playlists. Bot replies directly that it has completed the task. 
-		This operation will likely be slow.
-```
-### Reset Playlist
-```
-Precondition: Bot is reading from a set channel
-Participating Actor: Admin
-Postcondition: Playlist entities are reset to not contain any songs.
-Flow of Events: 1) Admin requests a reset of the playlists.
-		2) Bot will delete all songs in the playlist and reply directly that the playlist has been cleared.
-```
-### Change Bot Call Modifier
-```
-Precondition: Bot is reading from a set channel
-Participating Actor: Admin
-Postcondition: Bot reads requests using a different modifier.
-Flow of Events: 1) Admin requests a change for the bot call modifier. Admin supplies the new modifier.
-		2) Bot checks that the modifier is an acceptable modifier. Bot will change the modifier 
-		for reading if the modifier is acceptable. Otherwise, the state of the Bot remains unchanged.
-		Bot then replies directly that the modifier has been changed.
-```
-### View Playlists
-```
-Precondition: Bot is reading from a set channel
-Participating Actor: User
-Postcondition: Bot responds with a link to view the playlist
-Flow of Events: 1) User sends a request to view the playlists.
-		2) Bot responds directly to the user with a link to view the playlist.
-```
-### Add Song to Playlists
-```
-Precondition: Bot is reading from a set channel
-Participating Actor: User
-Postcondition: The playlist is updated if the song sent by the user is distinct
-Flow of Events: 1) User sends a link to a song on Spotify.
-		2) Bot takes the link and updates the playlist by adding the song listed if not already 
-		in the playlist.
-		3) Bot responds with success or failure in logging channel.
-```
