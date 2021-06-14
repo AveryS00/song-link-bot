@@ -1,3 +1,8 @@
+/**
+ *
+ *
+ * This code is covered under the MIT License.
+ */
 // index.js
 // Author: Avery Smith (ajsmith2@wpi.edu)
 
