@@ -1,17 +1,19 @@
 // spotify.js
-// Author: Avery Smith (ajsmith2@wpi.edu)
+// Author: Avery Smith
 
 const querystring = require('querystring');
 
+// TODO replace these imports
 const express = require('express'); // These require NPM Installs
 const request = require('request'); // Deprecated module, for future use ajax or alternative
 const opn = require('opn'); // There's a module for everything! Used once to open the authorization link automatically
 
 const json = require('./config.json');
-const cache = require('./playlist-cache').Cache(5); // TODO maxsize as command line argument
+const cf = require('./playlist-cache');
+const cache = new cf(5);
 
 
-const app = express(); // Create a simple http access
+const app = express(); // Create a simple http access, should be replaced with native http
 let access_token = ""; // Access token used to act on a Spotify account
 let refresh_time = 0; // The time in seconds since epoch when the access token was refreshed
 let expires_in = 0; // The time in seconds for how long the access token is valid

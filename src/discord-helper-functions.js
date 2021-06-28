@@ -1,5 +1,5 @@
 // discord-helper-functions.js
-// Author: Avery Smith (ajsmith2@wpi.edu)
+// Author: Avery Smith
 
 /**
  * Send a logging message to the logging channel if it has been set. If not, do nothing

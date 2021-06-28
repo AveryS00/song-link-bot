@@ -1,10 +1,10 @@
 {
   "name": "discord-bot",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A Bot to pull posted Spotify links and place them in a viewable playlist",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jasmine"
   },
   "repository": {
     "type": "git",
@@ -20,6 +20,7 @@
     "discord.js": "^12.5.3",
     "express": "^4.17.1",
     "opn": "^6.0.0",
-    "request": "^2.88.2"
+    "request": "^2.88.2",
+    "yargs": "^17.0.1"
   }
 }
