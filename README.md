@@ -16,6 +16,7 @@ TODO: Optimize flow for adding to a server. By default, read all channels allowe
 TODO: Enhance error handling to include queuing up commands when rate-limited, abstract out shared error handling code
 TODO: Take another look at caching system
 TODO: Proper testing environment which uses secondary bot instead of primary 
+TODO: Save config at regular intervals, centralize the handling of it
 ```
 
 Please submit any and all issues that you find through GitHub. I am particularly interested in error messages that show up on client side.
