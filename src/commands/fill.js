@@ -1,7 +1,5 @@
-// fill.js
-// Author: Avery Smith (ajsmith2@wpi.edu)
 
-const helper = require('../discord-helper-functions');
+const helper = require('../utils/discord-helper-functions');
 
 /**
  * Gets all song ids from a Discord channel.

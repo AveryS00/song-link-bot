@@ -1,7 +1,9 @@
-// playlist-cache.js
-// Author: Avery Smith
-// An cache system for playlists using Least-Recently-Used Eviction policy
-// The head is most recently used while tail is least recent
+/**
+ * A caching class to store playlists with a Least-Recently-Used Eviction policy
+ * @author Avery Smith
+ * @licence MIT
+ * @module utils/playlist-cache
+ */
 
 /**
  * Create a cache object with the given maxSize
