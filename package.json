@@ -18,9 +18,6 @@
   "homepage": "https://github.com/AveryS00/discord-bot#readme",
   "dependencies": {
     "discord.js": "^12.5.3",
-    "express": "^4.17.1",
-    "opn": "^6.0.0",
-    "request": "^2.88.2",
     "yargs": "^17.0.1"
   }
 }

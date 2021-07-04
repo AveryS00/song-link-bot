@@ -1,6 +1,3 @@
-// help.js
-// Author: Avery Smith (ajsmith2@wpi.edu)
-
 module.exports = {
     name: 'help',
     execute(message, args, json, spotify) {

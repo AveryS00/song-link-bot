@@ -1,5 +1,13 @@
-// set.js
-// Author: Avery Smith (ajsmith2@wpi.edu)
+/**
+ * Handles all Spotify API calls
+ * @author Avery Smith
+ * @licence MIT
+ * @module commands/set
+ */
+
+const valid_prefixes = ['!', '!!', '.', '..', '?', '??', '&', '&&', '+', '++'];
+// TODO add permissions constant
+// TODO set playlist
 
 module.exports = {
 	name: 'set',
