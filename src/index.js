@@ -6,8 +6,11 @@
  * @requires file:yargs/yargs
  * @requires module:readline
  * @requires module:discord-connect
+ * @requires module:utils/utils
  */
 'use strict';
+
+const { requestProperty } = require('utils/utils');
 
 const argv = require('yargs/yargs')(process.argv.slice(2))
     .usage('Usage: $0 [options] -d discord-bot-token')
@@ -47,14 +50,14 @@ const rl = require('readline').createInterface({
 // Toss readline onto the arguments to be forwarded
 argv.rl = rl;
 
-if (!argv['discord-bot-token']) {
-    // TODO Add an abort sequence, since Ctrl-c doesn't work
-    rl.question('Enter the Discord Bot Token (Ctrl-c to exit):\n> ', (answer) => {
-        argv['discord-bot-token'] = answer;
+rl.removeEventListener();
 
-        // Connect the bot using CLI parameters
-        require('discord-connect')(argv);
-    });
+if (!argv['discord-bot-token']) {
+    requestProperty(rl, argv, 'discord-bot-token',
+        'Enter the Discord Bot Token (Ctrl-c to exit):\n> ', () => {
+            // Connect the bot using CLI parameters
+            require('discord-connect')(argv);
+        });
 } else {
     require('discord-connect')(argv);
 }

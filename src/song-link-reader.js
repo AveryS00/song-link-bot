@@ -6,8 +6,8 @@
  * @requires module:utils/spotify-server
  * @requires module:utils/spotify-api
  * @requires module:utils/utils
+ * @requires module:"discord.js"
  */
-'use strict';
 
 const {authenticate} = require('utils/spotify-server');
 const spotify_api = require('utils/spotify-api');
@@ -15,7 +15,6 @@ const utils = require('utils/utils');
 
 
 // Contains environment variables needed to operate
-// Need to figure this out TODO
 let _config;
 
 
@@ -43,32 +42,21 @@ function startUp(client,
                  spotify_secret) {
 
     // Callbacks all the way down, but needs to be linear
-    utils.readConfig(spotify_id, spotify_secret, () => {
+    utils.readConfig(spotify_id, spotify_secret, (json) => {
+        _config = json;
 
         utils.requestProperty(rl, _config, 'spotify_id',
             'Enter the Spotify ID:\n> ', () => {
 
             utils.requestProperty(rl, _config, 'spotify_secret',
                 'Enter the Spotify secret:\n> ', () => {
-                    authenticate(_config.spotify_id, _config.spotify_refresh_token);
+                    authenticate(_config);
+                    attachCloseEventRL(rl);
                 });
         });
     });
 
     utils.attachCommandsToClient(client);
-
-    // I want a graceful exit. This will save the json object to the config file
-    // so that items are not lost on closure of the bot.
-    rl.on('SIGINT', () => {
-        console.log('Attempting to save changes');
-
-        // TODO acquire refresh token and user_id
-
-        utils.writeToConfig(_config, () => {
-            rl.close();
-            process.exit(0);
-        });
-    });
 }
 
 
@@ -113,13 +101,15 @@ function onChannelDelete(channel) {
  * @param {module:"discord.js".Guild} guild - The newly joined guild
  */
 function onJoinServer(guild) {
+    const Discord = require("discord.js");
+
     // Create a JSON dict for the server
     _config.server_list[guild.id] = {
         'music_channel': '',
         'logging_channel': '',
         'playlist_id': '',
         'prefix': '!',
-        'admin_permission_level': 0, // TODO find the magic constant
+        'admin_permission_level': Discord.Permissions.FLAGS.MANAGE_GUILD,
         'fill_cooldown': 0,
         'reset_cooldown': 0
     };
@@ -128,10 +118,14 @@ function onJoinServer(guild) {
     spotify_api.createPlaylist(guild.name)
         .then(result => {
             _config.server_list[guild.id].playlist_id = result;
+            // TODO
+            utils.sendMessageToDiscord(guild.client, ``);
         })
-        .catch(
-            // TODO send error to Discord guild
-        );
+        .catch(() => {
+            utils.sendMessageToDiscord(guild.client,
+                `Unable to create the playlist, please wait a bit and \
+                try again with ${_config.server_list[guild.id].prefix}create playlist`);
+        });
 }
 
 
@@ -204,7 +198,6 @@ function handleSpotifyLinks(client, guildSettings,
             }
         })
         .catch(error => {
-            // TODO ensure that the error that gets here is sanitised
             if (matches.length === 1) {
                 resultMessage = 'Could not add song <' + matches[0] + '> sent by ' +
                     message.member.user.tag + '.\nError: ' + error.message;
@@ -214,6 +207,24 @@ function handleSpotifyLinks(client, guildSettings,
             }
         })
         .finally(() => {
-            utils.logToDiscord(client, guildSettings.logging_channel, resultMessage)
+            utils.sendMessageToDiscord(client, resultMessage, guildSettings.logging_channel)
         });
+}
+
+
+/**
+ * Attach a graceful exit. This will save the json object to the config file
+ * so that items are not lost on closure of the bot.
+ * @private
+ * @param {module:readline.Interface} rl
+ */
+function attachCloseEventRL(rl) {
+    rl.on('SIGINT', () => {
+        console.log('Attempting to save changes');
+
+        utils.writeToConfig(_config, () => {
+            rl.close();
+            process.exit(0);
+        });
+    });
 }
