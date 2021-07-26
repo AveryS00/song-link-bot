@@ -1,5 +1,5 @@
 /**
- * Handles all Spotify API calls
+ *
  * @author Avery Smith
  * @licence MIT
  * @module commands/set

@@ -10,23 +10,31 @@ const fs = require('fs');
 
 
 module.exports = {
-    logToDiscord,
+    sendMessageToDiscord,
     attachCommandsToClient,
     writeToConfig,
     readConfig,
     requestProperty
 }
 
-
 /**
- * Send a logging message to the logging channel if it has been set. If not, do nothing
  * @param {module:"discord.js".Client} client - The connected Discord client
- * @param {String} channelId - The id of the channel to send the message to
- * @param {String} message -  The message to send
+ * @param {module:"discord.js".TextChannel} client.channels.cache.get()
+ * @param {String} message - The message to send
+ * @param {String} [channelId] - Optional channel ID to send the message to
  */
-function logToDiscord(client, channelId, message) {
-    if (channelId === '') return;
-    client.channels.cache.get(channelId).send(message); // Errors because it does not know its text channel
+function sendMessageToDiscord(client, message, channelId) {
+    if (channelId === '' || channelId === null) {
+        // Find a channel to send to
+        // TODO
+    } else {
+
+        const channel = client.channels.cache.get(channelId);
+        if (channel.isText()) {
+            channel.send(message);
+        }
+
+    }
 }
 
 
@@ -49,8 +57,8 @@ function attachCommandsToClient(client) {
 
 /**
  * Any commands to execute after writing config.json
- * No parameters
  * @callback writeCallback
+ * @param {Object} json - The JSON object that gets written
  */
 /**
  * Writes the object to ./config.json
@@ -66,15 +74,16 @@ function writeToConfig(json, callback) {
             console.log('Configuration settings written to config.json');
         }
 
-        if (callback) callback();
+        if (callback) callback(json);
     });
 }
 
 
 /**
  * Any commands to execute after reading config.json
- * No parameters
+ * Returns the config in the parameter
  * @callback readCallback
+ * @param {Object} config
  */
 /**
  * Reads config.json and places it in the global variable config.
@@ -89,13 +98,12 @@ function readConfig(spotify_id, spotify_secret, callback) {
     fs.readFile('./config.json', 'r+', (err, data) => {
         if (err) {
             console.log('Could not read config.json\nCreating config.json');
-            config = createConfig(spotify_id, spotify_secret, callback);
+            createConfig(spotify_id, spotify_secret, callback);
         } else {
-
             config = JSON.parse(data);
             if (spotify_id) config['spotify_id'] = spotify_id;
             if (spotify_secret) config['spotify_secret'] = spotify_secret;
-            if (callback) callback();
+            if (callback) callback(config);
         }
     });
 }
@@ -108,6 +116,7 @@ function readConfig(spotify_id, spotify_secret, callback) {
 /**
  * Requests from the command line a specific property that was not filled in, calls the callback no matter what
  * @param {module:readline.Interface} rl - The readline interface object to access the command line
+ * @param rl.removeEventListener
  * @param {Object} json - The config object
  * @param {string} property - The property to access from the config object
  * @param {string} message - A message to state when prompting the command line
@@ -115,9 +124,24 @@ function readConfig(spotify_id, spotify_secret, callback) {
  */
 function requestProperty(rl, json, property, message, callback) {
     if (!json[property]) {
+        const ac = new AbortController();
+        const signal = ac.signal;
+
+        // Set up an event listener for the question so that it can exit with ctrl-c
+        signal.addEventListener('abort', () => {
+            console.log("Cancelling...");
+            rl.close();
+            process.exit(0);
+        }, { once: true });
+
+        rl.once('SIGINT', ac.abort);
+
         // Pose a prompt to the command line
-        rl.question(message, (answer) => {
+        rl.question(message, { signal }, (answer) => {
             json[property] = answer;
+
+            rl.removeEventListener('SIGINT', ac.abort);
+
             callback();
         });
     } else {
@@ -149,5 +173,4 @@ function createConfig(spotify_id, spotify_secret, callback) {
         json['spotify_secret'] = spotify_secret;
 
     writeToConfig(json, callback);
-    return json;
 }

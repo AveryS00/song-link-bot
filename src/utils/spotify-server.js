@@ -9,12 +9,12 @@
 
 const querystring = require('querystring');
 const http = require('http'); // TODO upgrade to https
+const server = http.createServer(parseRequest);
+
 
 module.exports = {
 	authenticate
 }
-
-const server = http.createServer(parseRequest);
 
 
 /**
@@ -23,10 +23,13 @@ const server = http.createServer(parseRequest);
  * @param {module:http.ServerResponse} res
  */
 function parseRequest(req, res) {
-
+	// TODO parsing request to only use spotify
 	loginToSpotify(req, res);
 }
 
+
+// TODO Fix this function to operate with HTTP
+// Get _config in there and save refresh token and
 /**
  *
  * @param {module:http.IncomingMessage} req
@@ -98,10 +101,11 @@ function loginToSpotify(req, res) {
 
 /**
  * Check for an existing refresh token, if none, request authorization from a Spotify account.
- * @param {String} spotify_id - The spotify ID to log in to
- * @param {String} [refresh_token] - An optional refresh token which can be used to generate access tokens
+ * @param {Object} config - The config settings
+ * @param {String} config.spotify_id - The spotify ID to log in to
+ * @param {String} config.refresh_token - An optional refresh token which can be used to generate access tokens
  */
-function authenticate(spotify_id, refresh_token) {
+function authenticate(config) {
 	if (!server.listening) server.listen(80);
 
 	if (refresh_token === '') {
