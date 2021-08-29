@@ -1,3 +1,5 @@
+# The upcoming changes to Discord botting will unfortunately kill this functionality. As such, I am abandoning this project in pursuit of other goals
+
 Note: The current commit is under a large rewrite (1.1.0) and will not work. Please use\
 ``git checkout a1da36c3f403849e33f5471784795df9943e37f3``\
 To get the stable version 1.0.0

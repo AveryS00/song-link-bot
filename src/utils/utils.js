@@ -18,22 +18,20 @@ module.exports = {
 }
 
 /**
- * @param {module:"discord.js".Client} client - The connected Discord client
- * @param {module:"discord.js".TextChannel} client.channels.cache.get()
+ * @param {module:"discord.js".Client| module:"discord.js".Guild} clientOrGuild - The connected Discord client
  * @param {String} message - The message to send
  * @param {String} [channelId] - Optional channel ID to send the message to
  */
-function sendMessageToDiscord(client, message, channelId) {
-    if (channelId === '' || channelId === null) {
+function sendMessageToDiscord(clientOrGuild, message, channelId) {
+    if (channelId === null) {
         // Find a channel to send to
         // TODO
+
+
     } else {
-
-        const channel = client.channels.cache.get(channelId);
-        if (channel.isText()) {
+        const channel = clientOrGuild.channels.cache.get(channelId);
+        if (channel.isText())
             channel.send(message);
-        }
-
     }
 }
 

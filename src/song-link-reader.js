@@ -124,7 +124,7 @@ function onJoinServer(guild) {
         .catch(() => {
             utils.sendMessageToDiscord(guild.client,
                 `Unable to create the playlist, please wait a bit and \
-                try again with ${_config.server_list[guild.id].prefix}create playlist`);
+                try again with ${_config.server_list[guild.id].prefix}create playlist`, guild);
         });
 }
 
